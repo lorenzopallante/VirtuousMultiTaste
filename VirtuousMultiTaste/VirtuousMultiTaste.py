@@ -173,27 +173,19 @@ if __name__ == "__main__":
     testing_fourtaste.logging.info("{}".format(ret[1]))
 
     # --- Collect results --
-    col_names = ["SMILES", "Check AD", "class", "probability"]
     df = pd.read_csv(output_folder1 + "result_labels.txt", sep="\t", header=None)
     # Keep only the prediction values
     df = df[[1, 3, 5, 7]]
 
     dominant_file = output_folder1 + "result_dominant_label.txt"
 
-
     with open(dominant_file, 'r') as f:
-        dominant = f.readlines()
+        dominants = f.readlines()
 
     # Rename the dataframe column  to the four tastes 
     df = df.rename(columns={1: 'Bitter', 3: 'Sweet', 5: 'Other', 7: 'Umami'})
     df = df.reindex(columns=['Bitter', 'Sweet', 'Umami', 'Other'])
-    df['Dominant'] = ""
-    
-    i=0
-    # Add the dominant predicted taste, SMILES and Applicability Domain check for each compound 
-    for prediction in dominant:
-        df['Dominant'][i] = prediction.split()[0].upper()
-        i+=1
+    df ["Dominant"] = [d.split()[0].upper() for d in dominants]
     df.insert(loc=0, column='Check AD', value=test)
     df.insert(loc=0, column='SMILES', value=parent_smi)
 
