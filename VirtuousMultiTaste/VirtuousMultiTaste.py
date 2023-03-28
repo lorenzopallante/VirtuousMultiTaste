@@ -175,24 +175,25 @@ if __name__ == "__main__":
     # --- Collect results --
     col_names = ["SMILES", "Check AD", "class", "probability"]
     df = pd.read_csv(output_folder1 + "result_labels.txt", sep="\t", header=None)
+    # Keep only the prediction values
+    df = df[[1, 3, 5, 7]]
 
-    result_label_file = output_folder1 + "result_labels.txt"
     dominant_file = output_folder1 + "result_dominant_label.txt"
 
-    # read the result files
-    with open(result_label_file, 'r') as f:
-        labels = f.readline()
 
     with open(dominant_file, 'r') as f:
-        dominant = f.readline()
+        dominant = f.readlines()
 
-    # create dataframe of the predictions
-    df = pd.DataFrame(columns=['Bitter', 'Sweet', 'Umami', 'Other', 'Dominant'])
-    df['Bitter'] = [np.round(float(labels.split()[1]), 2)]
-    df['Sweet'] = [np.round(float(labels.split()[3]), 2)]
-    df['Umami'] = [np.round(float(labels.split()[7]), 2)]
-    df['Other'] = [np.round(float(labels.split()[5]), 2)]
-    df['Dominant'] = [dominant.split()[0].upper()]
+    # Rename the dataframe column  to the four tastes 
+    df = df.rename(columns={1: 'Bitter', 3: 'Sweet', 5: 'Other', 7: 'Umami'})
+    df = df.reindex(columns=['Bitter', 'Sweet', 'Umami', 'Other'])
+    df['Dominant'] = ""
+    
+    i=0
+    # Add the dominant predicted taste, SMILES and Applicability Domain check for each compound 
+    for prediction in dominant:
+        df['Dominant'][i] = prediction.split()[0].upper()
+        i+=1
     df.insert(loc=0, column='Check AD', value=test)
     df.insert(loc=0, column='SMILES', value=parent_smi)
 
