@@ -47,10 +47,7 @@ RDLogger.DisableLog("rdApp.info")
 import os
 import argparse
 import time
-import urllib.parse
-import urllib.request
 import sys
-import xmltodict
 
 # # Import Virtuous Library
 import Virtuous
@@ -60,6 +57,10 @@ import testing_fourtaste
 
 import warnings
 warnings.simplefilter(action='ignore', category=FutureWarning)
+
+import logging
+logging.basicConfig(level=logging.WARNING)
+
 
 if __name__ == "__main__":
 
@@ -80,16 +81,16 @@ if __name__ == "__main__":
     code_path = os.path.realpath(__file__)
     root_dir_path = os.path.dirname(os.path.dirname(code_path))
     src_path = os.path.dirname(code_path) + os.sep + "src" + os.sep
-    AD_file = src_path  + "umami_AD.pkl"
+    AD_file = src_path  + "fourtaste_AD_train.pkl"
     maximums_filename1 = src_path  + 'maximums.txt'
     minimums_filename1 = src_path  + 'minimums.txt'
     features_filename1 = src_path + 'features_list.txt'
-    best_features = src_path + 'umami_best_features.txt'
+    best_features = src_path + 'fourtaste_best_features.txt'
     missing_imputation_method1 = 2
     normalization_method1 = 1
-    model_filename1 = src_path  + 'models_3_5.zip'
-    selection_flag1 = 2
-    data_been_preprocessed_flag1 = 0
+    model_filename1 = src_path  + 'model2_fourtaste.zip'
+    selection_flag1 = 0
+    data_been_preprocessed_flag1 = 1
     has_features_header1 = 1
     has_samples_header1 = 1
     training_labels_filename1 = src_path  + 'training_labels.txt'
@@ -105,8 +106,8 @@ if __name__ == "__main__":
     if not os.path.exists(output_folder1):
         os.makedirs(output_folder1)
 
-        testing_umami.initLogging()
-
+        testing_fourtaste.initLogging()
+    
 
     # --- Preprocessing (Virtuous.py) ---
 
@@ -162,21 +163,39 @@ if __name__ == "__main__":
 
     testset_filename1 = output_folder1 + "descriptors.csv"
 
-    delim   = testing_umami.find_delimiter(testset_filename1)
-    dataset = testing_umami.preprocess_specific(testset_filename1, delim, output_folder1)
-    ret     = testing_umami.run_all(dataset, maximums_filename1, minimums_filename1,
+    delim   = testing_fourtaste.find_delimiter(testset_filename1)
+    dataset = testing_fourtaste.preprocess_specific(testset_filename1, delim, output_folder1, src_path)
+    ret     = testing_fourtaste.run_all(dataset, maximums_filename1, minimums_filename1,
                   features_filename1, missing_imputation_method1, normalization_method1,
-                  model_filename1, selection_flag1, data_been_preprocessed_flag1, selected_comorbidities_string1,has_features_header1, has_samples_header1, training_labels_filename1, length_of_features_from_training_filename1, output_folder1)
+                  model_filename1, selection_flag1, data_been_preprocessed_flag1, selected_comorbidities_string1,has_features_header1, has_samples_header1, training_labels_filename1, 
+                  length_of_features_from_training_filename1, output_folder1)
 
-    testing_umami.logging.info("{}".format(ret[1]))
-
+    testing_fourtaste.logging.info("{}".format(ret[1]))
 
     # --- Collect results --
     col_names = ["SMILES", "Check AD", "class", "probability"]
     df = pd.read_csv(output_folder1 + "result_labels.txt", sep="\t", header=None)
+
+    result_label_file = output_folder1 + "result_labels.txt"
+    dominant_file = output_folder1 + "result_dominant_label.txt"
+
+    # read the result files
+    with open(result_label_file, 'r') as f:
+        labels = f.readline()
+
+    with open(dominant_file, 'r') as f:
+        dominant = f.readline()
+
+    # create dataframe of the predictions
+    df = pd.DataFrame(columns=['Bitter', 'Sweet', 'Umami', 'Tasteless', 'Dominant'])
+    df['Bitter'] = [np.round(float(labels.split()[1]), 2)]
+    df['Sweet'] = [np.round(float(labels.split()[3]), 2)]
+    df['Umami'] = [np.round(float(labels.split()[7]), 2)]
+    df['Tasteless'] = [np.round(float(labels.split()[5]), 2)]
+    df['Dominant'] = [dominant.split()[0].upper()]
     df.insert(loc=0, column='Check AD', value=test)
     df.insert(loc=0, column='SMILES', value=parent_smi)
-    df.columns = col_names
+
     df.to_csv(output_folder1 + "predictions.csv", index=False)
 
     if args.verbose:
