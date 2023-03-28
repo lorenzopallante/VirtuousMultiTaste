@@ -153,6 +153,7 @@ def transform_labels_to_alpha_multiclass(labels, unique_labels):
     for i, label in enumerate(unique_labels):
         labels_dict[str(i)] = label
 
+    labels_dict.update([('1','Sweet'), ('2','Other')])
     new_labels = [labels_dict[str(x)] for x in labels]
     # logging.info("Labels transformed to alphanumeric successfully.")
     return new_labels
