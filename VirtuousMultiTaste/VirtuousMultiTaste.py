@@ -1,7 +1,7 @@
 """
 VIRTUOUS MULTI TASTE
 
-The VirtuousMultiTaste tool predict the tasteless/sweet/bitter/umami tastes of quey molecules based on their molecular structures.
+The VirtuousMultiTaste tool predict the other/sweet/bitter/umami tastes of quey molecules based on their molecular structures.
 
 This tool is mainly based on:
     1. VirtuousMultiTaste.py: a main script which calls the following functionalities
@@ -187,11 +187,11 @@ if __name__ == "__main__":
         dominant = f.readline()
 
     # create dataframe of the predictions
-    df = pd.DataFrame(columns=['Bitter', 'Sweet', 'Umami', 'Tasteless', 'Dominant'])
+    df = pd.DataFrame(columns=['Bitter', 'Sweet', 'Umami', 'Other', 'Dominant'])
     df['Bitter'] = [np.round(float(labels.split()[1]), 2)]
     df['Sweet'] = [np.round(float(labels.split()[3]), 2)]
     df['Umami'] = [np.round(float(labels.split()[7]), 2)]
-    df['Tasteless'] = [np.round(float(labels.split()[5]), 2)]
+    df['Other'] = [np.round(float(labels.split()[5]), 2)]
     df['Dominant'] = [dominant.split()[0].upper()]
     df.insert(loc=0, column='Check AD', value=test)
     df.insert(loc=0, column='SMILES', value=parent_smi)
