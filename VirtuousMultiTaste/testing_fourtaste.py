@@ -128,7 +128,7 @@ def create_labels_file(prediction, predictions_proba, training_labels_file, outp
         with open(output_folder + "result_labels.txt", "w") as result_labels_fid:
             i = 0
             for prediction in predictions_proba:
-                result_labels_fid.write('Bitter' + "\t" + str(prediction[0]) + "\t" + 'Sweet' + "\t" + str(prediction[1]) + "\t" + 'Tasteless' + "\t" + str(prediction[2]) + "\t" +  'Umami' + "\t" + str(prediction[3]))
+                result_labels_fid.write('Bitter' + "\t" + str(prediction[0]) + "\t" + 'Sweet' + "\t" + str(prediction[1]) + "\t" + 'Other' + "\t" + str(prediction[2]) + "\t" +  'Umami' + "\t" + str(prediction[3]))
                 result_labels_fid.write("\n")        
                 i +=1
 
