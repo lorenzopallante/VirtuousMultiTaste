@@ -31,14 +31,14 @@ Version history:
 - Version 1.6 - 28/03/2022: Adding nbits and radius parameters for fingerprint calculation in the DefineAD and TestAD function; adding different metrics on the TestAD
 - Version 1.7 - 05/05/2022: Adding query to pubchem in case of providing name of a compound; automatic detection of molecular input
 - Version 1.8 - 13/07/2022: Changing pybel import
+- Version 1.9 - 04/11/2022: Bug fix -> Fixing 3D descriptors calculation using Mordred
 """
 
-__version__ = '1.8'
+__version__ = '1.9'
 __author__ = 'Lorenzo Pallante'
 
 import sys
 import os
-import pickle
 from tqdm.notebook import tqdm
 import numpy as np
 import pandas as pd
@@ -47,13 +47,11 @@ from mordred import Calculator, descriptors
 import rdkit
 from rdkit import Chem, DataStructs
 from rdkit.Chem import AllChem
-from rdkit.Chem import Descriptors
-#from openbabel import pybel
+from openbabel import pybel
 import urllib.parse
 import urllib.request
 import sys
 import xmltodict
-
 
 # disable printing warning from RDKit
 rdkit.RDLogger.DisableLog('rdApp.*')
@@ -242,7 +240,12 @@ def Calc_Mordred (smiles, ignore_3D=False):
     """
     # check smile and generating RDKit molecule from smiles
     mol = ReadMol(smiles, verbose=False)
-
+    
+    if not ignore_3D:
+        mol=Chem.AddHs(mol)
+        Chem.AllChem.EmbedMolecule(mol, useRandomCoords=True, maxAttempts=5000)
+        Chem.AllChem.UFFOptimizeMolecule(mol)
+    
     # Mordred descriptors
     calc = Calculator(descriptors, ignore_3D=ignore_3D)
 
@@ -484,7 +487,7 @@ def Import_DB (DB_filename, smile_field = "SMILES", output = "out.csv", sep = ",
 
         if remove_duplicates:
             # remove duplicates according to the Parent SMILES
-            print ("Removing %d duplicates ... " %DB.duplicated(subset=smile_field).sum())
+            print ("Removing %d duplicates ... " %DB.duplicated(subset=['Parent_SMILES']).sum())
             DB.drop_duplicates(subset=['Parent_SMILES'], inplace=True)
 
     # reset index after removing duplicates
