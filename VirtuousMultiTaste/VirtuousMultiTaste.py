@@ -74,7 +74,7 @@ if __name__ == "__main__":
 
     # --- Print start message
     if args.verbose:
-        print ("\n\t   *** VirtuousMultiTaste ***\nAn ML-based algorithm to predict the umami taste\n")
+        print ("\n\t   *** VirtuousMultiTaste ***\nAn ML-based algorithm to predict sweet, bitter, umami tastes\n")
 
     # --- Setting Folders and files ---
     # Stting files needed by the code
@@ -137,7 +137,8 @@ if __name__ == "__main__":
     parent_smi = [i[2] for i in standard]
 
     # 1.4 Check the Applicability Domain (AD)
-    check_AD = [Virtuous.TestAD(smi, filename=AD_file, verbose = False, sim_threshold=0.4, neighbors = 5, metric = "tanimoto") for smi in parent_smi]
+    fourtaste_AD_threshold = 0.03
+    check_AD = [Virtuous.TestAD(smi, filename=AD_file, verbose = False, sim_threshold=fourtaste_AD_threshold, neighbors = 5, metric = "tanimoto") for smi in parent_smi]
     test       = [i[0] for i in check_AD]
     score      = [i[1] for i in check_AD]
     sim_smiles = [i[2] for i in check_AD]
