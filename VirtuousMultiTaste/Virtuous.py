@@ -22,19 +22,20 @@ References
 
 ----------------
 Version history:
-- Version 1.0 - 22/10/2021
-- Version 1.1 - 27/10/2021: Adding automatic functions for DB processing
-- Version 1.2 - 06/12/2021: Removing pybel, Chemopy and Padel descriptors, removing multiprocess
-- Version 1.3 - 28/01/2022: Adding function for calculating Morgan Fingerprint using RDKit function and check the Applicability Domain (AD)
-- Version 1.4 - 14/03/2022: Re-adding pybel, counters for the standardisations error/removals in DB processing; adding dynamic issue threashold
-- Version 1.5 - 16/03/2022: Return the five most similar compounds from the applicability domain
-- Version 1.6 - 28/03/2022: Adding nbits and radius parameters for fingerprint calculation in the DefineAD and TestAD function; adding different metrics on the TestAD
-- Version 1.7 - 05/05/2022: Adding query to pubchem in case of providing name of a compound; automatic detection of molecular input
-- Version 1.8 - 13/07/2022: Changing pybel import
-- Version 1.9 - 04/11/2022: Bug fix -> Fixing 3D descriptors calculation using Mordred
+- Version 1.0  - 22/10/2021
+- Version 1.1  - 27/10/2021: Adding automatic functions for DB processing
+- Version 1.2  - 06/12/2021: Removing pybel, Chemopy and Padel descriptors, removing multiprocess
+- Version 1.3  - 28/01/2022: Adding function for calculating Morgan Fingerprint using RDKit function and check the Applicability Domain (AD)
+- Version 1.4  - 14/03/2022: Re-adding pybel, counters for the standardisations error/removals in DB processing; adding dynamic issue threashold
+- Version 1.5  - 16/03/2022: Return the five most similar compounds from the applicability domain
+- Version 1.6  - 28/03/2022: Adding nbits and radius parameters for fingerprint calculation in the DefineAD and TestAD function; adding different metrics on the TestAD
+- Version 1.7  - 05/05/2022: Adding query to pubchem in case of providing name of a compound; automatic detection of molecular input
+- Version 1.8  - 13/07/2022: Changing pybel import
+- Version 1.9  - 04/11/2022: Bug fix -> Fixing 3D descriptors calculation using Mordred
+- Version 1.10 - 03/04/2023: Bug fix -> Adding is_word function to check if the string identifying the input molecule is a word
 """
 
-__version__ = '1.9'
+__version__ = '1.10'
 __author__ = 'Lorenzo Pallante'
 
 import sys
@@ -52,6 +53,8 @@ import urllib.parse
 import urllib.request
 import sys
 import xmltodict
+# library to check if a string is a word
+import enchant
 
 # disable printing warning from RDKit
 rdkit.RDLogger.DisableLog('rdApp.*')
@@ -110,6 +113,12 @@ def pubchem_query(cpnd, verbose = True ):
 
     return canonical_smiles
 
+def is_word(s):
+    '''
+    Returns True if input s is a valid English word, False otherwise.
+    '''
+    d = enchant.Dict("en_US")
+    return d.check(s)
 
 def ReadMol (file, verbose=True):
     """
@@ -117,54 +126,63 @@ def ReadMol (file, verbose=True):
     :param file: molecule file or string
     :return: RDKit molecule object
     """
-    # SMILES is expected as input
-    mol = Chem.MolFromSmiles(file, sanitize=False)
+    
+    mol = None
+
+    # check if the input string is a valid word
+    if is_word(file):
+        # if it is a word, query PubChem to retrieve the SMILES
+        try: 
+            smi = pubchem_query(file, verbose=verbose)
+            mol = Chem.MolFromSmiles(smi, sanitize=False)
+        except:
+            pass
 
     if mol:
-        type = 'SMILES'
-    else:
-        mol = Chem.MolFromFASTA(file, sanitize=False)
+        # if the input is a valid word and the query to PubChem is successful, the type is 'pubchem name'
+        type = 'pubchem name'
+    else: 
+        # check other files formats
+        mol = Chem.MolFromSmiles(file, sanitize=False)
+
         if mol:
-            type = 'FASTA'
+            type = 'SMILES'
         else:
-            mol = Chem.MolFromSequence(file, sanitize=False)
+            mol = Chem.MolFromFASTA(file, sanitize=False)
             if mol:
-                type = 'SEQUENCE'
+                type = 'FASTA'
             else:
-                try:
-                    mol = Chem.MolFromInchi(file, sanitize=False)
-                except:
-                    pass
+                mol = Chem.MolFromSequence(file, sanitize=False)
                 if mol:
-                    type = 'Inchi'
+                    type = 'SEQUENCE'
                 else:
                     try:
-                        mol = Chem.MolFromPDBFile(file, sanitize=False)
+                        mol = Chem.MolFromInchi(file, sanitize=False)
                     except:
                         pass
                     if mol:
-                        type = 'PDB'
+                        type = 'Inchi'
                     else:
                         try:
-                            mol = Chem.MolFromSmarts(file, sanitize=False)
+                            mol = Chem.MolFromPDBFile(file, sanitize=False)
                         except:
                             pass
                         if mol:
-                            type = 'Smarts'
+                            type = 'PDB'
                         else:
                             try:
-                                smi = pubchem_query(file, verbose=verbose)
-                                mol = Chem.MolFromSmiles(smi, sanitize=False)
+                                mol = Chem.MolFromSmarts(file, sanitize=False)
                             except:
                                 pass
                             if mol:
-                                type = 'pubchem name'
+                                type = 'Smarts'
                             else:
                                 sys.exit("\nError while reading your query compound: check your molecule!\nNote that "
-                                         "allowed file types are SMILES, FASTA, Inchi, Sequence, Smarts or pubchem "
-                                         "name")
+                                        "allowed file types are SMILES, FASTA, Inchi, Sequence, Smarts or pubchem "
+                                        "name")
 
-    if verbose:
+    # print the type of input (if pubchem name, no need to print it)
+    if verbose and type != 'pubchem name':
         print(f"Input has been interpeted as {type}")
 
     # try to sanitiaze the molecule
@@ -229,7 +247,7 @@ def Calc_fps (smiles, nbits=1024, radius=2):
 # ==============================================================================
 # === Section b) DESCRIPTORS CALCULATION ===
 
-def Calc_Mordred (smiles, ignore_3D=False):
+def Calc_Mordred (smiles, ignore_3D=True):
     """
     Function to calculate Mordred Descriptors (https://github.com/mordred-descriptor/mordred)
     [1] Moriwaki, H., Tian, Y.-S., Kawashita, N., & Takagi, T. (2018). Mordred: a molecular descriptor calculator. Journal of Cheminformatics, 10(1), 4. https://doi.org/10.1186/s13321-018-0258-y
