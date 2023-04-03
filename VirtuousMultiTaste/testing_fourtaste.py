@@ -506,6 +506,7 @@ class PredictMulticlass:
             return None, patient
         else:
             # find majority prediction for multiclass
+            # print(pred_array)
             patient_mean = np.mean(pred_array, axis=0)
 
         mean_class = patient_mean
@@ -1107,23 +1108,23 @@ def preprocess_specific(input_dataset, delimiter, output_folder, src_path):
     # Create output folder if it doesn't exist
     if not os.path.exists(output_folder):
         os.makedirs(output_folder)
-    # fourtaste_significant = open(src_path + 'fourtaste_statistical_features.txt', 'r')
-    # fourtaste_features = fourtaste_significant.read()
-    # fourtaste_features = fourtaste_features.split('\n')    
-    # fourtaste_significant.close()
+    fourtaste_significant = open(src_path + 'fourtaste_statistical_features.txt', 'r')
+    fourtaste_features = fourtaste_significant.read()
+    fourtaste_features = fourtaste_features.split('\n')    
+    fourtaste_significant.close()
 
 
-    fourtaste_best = open(src_path + 'fourtaste_best_features.txt', 'r')
-    fourtaste_features = fourtaste_best.read()
-    fourtaste_features = fourtaste_features.split('\n')
-    fourtaste_best.close()
+    fourtaste_exclude = open(src_path + 'features_exclude.txt', 'r')
+    features_exclude = fourtaste_exclude.read()
+    features_exclude = features_exclude.split('\n')
+    fourtaste_exclude.close()
+
     df = pd.read_csv(input_dataset, delimiter=delimiter)
-    # df = df.T.astype(object)
-    # df.columns = df.iloc[0] 
+    df = df.T.astype(object)
+    df.columns = df.iloc[0] 
 
-    # df = df[1:]
-    # print(df)
-    df = df[df.columns.drop(list(df.filter(regex='Unnamed')))]
+    df = df[1:]
+    # df = df[df.columns.drop(list(df.filter(regex='Unnamed')))]
     df.rename(columns=lambda s: s.replace(".", "_"), inplace=True)
     df.rename(columns=lambda s: s.replace("-", "_"), inplace=True)
 
@@ -1132,7 +1133,9 @@ def preprocess_specific(input_dataset, delimiter, output_folder, src_path):
     
     fourtaste_features = [w.replace('.', '_') for w in fourtaste_features]
     fourtaste_features = [w.replace('-', '_') for w in fourtaste_features]
-    df = df[fourtaste_features]
+
+    features = [x for x in fourtaste_features if x not in features_exclude]
+    df = df[features]
 
     df = df.astype(object).T
     xx = df.dropna(axis=0, how='all')
@@ -1160,7 +1163,7 @@ if __name__ == "__main__":
 
     model_filename1 = src_path + 'model2_fourtaste.zip'
     selection_flag1 = 0
-    data_been_preprocessed_flag1 = 1
+    data_been_preprocessed_flag1 = 0
     has_features_header1 = 1
     has_samples_header1 = 1
     
