@@ -90,7 +90,7 @@ if __name__ == "__main__":
     normalization_method1 = 1
     model_filename1 = src_path  + 'model2_fourtaste.zip'
     selection_flag1 = 0
-    data_been_preprocessed_flag1 = 1
+    data_been_preprocessed_flag1 = 0
     has_features_header1 = 1
     has_samples_header1 = 1
     training_labels_filename1 = src_path  + 'training_labels.txt'
