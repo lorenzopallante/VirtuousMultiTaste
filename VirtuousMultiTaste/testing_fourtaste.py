@@ -1120,10 +1120,10 @@ def preprocess_specific(input_dataset, delimiter, output_folder, src_path):
     fourtaste_exclude.close()
 
     df = pd.read_csv(input_dataset, delimiter=delimiter)
-    df = df.T.astype(object)
-    df.columns = df.iloc[0] 
+    # df = df.T.astype(object)
+    # df.columns = df.iloc[0] 
 
-    df = df[1:]
+    # df = df[1:]
     # df = df[df.columns.drop(list(df.filter(regex='Unnamed')))]
     df.rename(columns=lambda s: s.replace(".", "_"), inplace=True)
     df.rename(columns=lambda s: s.replace("-", "_"), inplace=True)
