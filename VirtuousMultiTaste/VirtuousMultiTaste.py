@@ -154,7 +154,7 @@ if __name__ == "__main__":
     df.insert(loc=0, column='SMILES', value=parent_smi)
     df.to_csv(output_folder1 + "descriptors.csv", index=False)
 
-    # save only the 12 best features on which the model relies
+    # save only the best features on which the model relies
     col = np.loadtxt(best_features, dtype="str")
     col = np.insert(col, 0, "SMILES")
     df_best = df[col]
