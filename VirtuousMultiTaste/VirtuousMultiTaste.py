@@ -48,6 +48,7 @@ import os
 import argparse
 import time
 import sys
+from joblib import Parallel, delayed
 
 # # Import Virtuous Library
 import Virtuous
@@ -61,6 +62,20 @@ warnings.simplefilter(action='ignore', category=FutureWarning)
 import logging
 logging.basicConfig(level=logging.WARNING)
 
+
+def read_mol(cpnd):
+    return Virtuous.ReadMol(cpnd, verbose=args.verbose)
+
+def standardize(m):
+    return Virtuous.Standardize(m)
+
+def test_ad(smi):
+    return Virtuous.TestAD(smi, filename=AD_file, verbose=False, sim_threshold=fourtaste_AD_threshold, neighbors=5, metric="tanimoto")
+
+# define the function that takes in a SMILES string and returns its descriptors
+def calc_desc(smi):
+    desc = Virtuous.CalcDesc(smi, Mordred=True, RDKit=False, pybel=False)
+    return desc
 
 if __name__ == "__main__":
 
@@ -97,7 +112,7 @@ if __name__ == "__main__":
     length_of_features_from_training_filename1 = src_path  + 'length_of_features_from_training.txt'
     tstamp = time.strftime('%Y_%m_%d_%H_%M')
     selected_comorbidities_string1 = ""
-
+    num_cores = 6 
     # Setting output folders and files
     if args.directory:
         output_folder1 = os.getcwd() + os.sep + args.directory + os.sep
@@ -127,10 +142,17 @@ if __name__ == "__main__":
         sys.exit("\n***ERROR!***\nPlease provide a SMILES or a txt file containing a list of SMILES!\nUse python ../VirtuousMultiTaste-master.py --help for further information\n")
 
     # 1.2 Import compound as a molecule object
-    mol = [Virtuous.ReadMol(cpnd, verbose=args.verbose) for cpnd in query_cpnd]
-
+    ## previous version
+    # mol = [Virtuous.ReadMol(cpnd, verbose=args.verbose) for cpnd in query_cpnd]
+    ##
+    mol = Parallel(n_jobs=num_cores)(
+                delayed(read_mol)(cpnd) for cpnd in query_cpnd)
     # 1.3 Standardise molecule with the ChEMBL structure pipeline (https://github.com/chembl/ChEMBL_Structure_Pipeline)
-    standard = [Virtuous.Standardize(m) for m in mol]
+    ## previous version
+    # standard = [Virtuous.Standardize(m) for m in mol]
+    ##
+    standard = Parallel(n_jobs=num_cores)(
+            delayed(standardize)(m) for m in mol)
     # take only the parent smiles
     issues     = [i[0] for i in standard]
     std_smi    = [i[1] for i in standard]
@@ -138,18 +160,34 @@ if __name__ == "__main__":
 
     # 1.4 Check the Applicability Domain (AD)
     fourtaste_AD_threshold = 0.03
-    check_AD = [Virtuous.TestAD(smi, filename=AD_file, verbose = False, sim_threshold=fourtaste_AD_threshold, neighbors = 5, metric = "tanimoto") for smi in parent_smi]
+    ## previous version
+    # check_AD = [Virtuous.TestAD(smi, filename=AD_file, verbose = False, sim_threshold=fourtaste_AD_threshold, neighbors = 5, metric = "tanimoto") for smi in parent_smi]
+    ##
+    check_AD = Parallel(n_jobs=num_cores)(
+            delayed(test_ad)(smi) for smi in parent_smi)
     test       = [i[0] for i in check_AD]
     score      = [i[1] for i in check_AD]
     sim_smiles = [i[2] for i in check_AD]
 
     # 1.5 Featurization: Calculation of the molecular descriptors
     #DescNames, DescValues = Virtuous.CalcDesc(parent_smi, Mordred=True, RDKit=False, pybel=False)
-    descs = [Virtuous.CalcDesc(smi, Mordred=True, RDKit=False, pybel=False) for smi in parent_smi]
+    ## previous version
+    # descs = [Virtuous.CalcDesc(smi, Mordred=True, RDKit=False, pybel=False) for smi in parent_smi]
+    # DescValues = []
+    # for d in descs:
+    #     DescValues.append(d[1])
+    # DescNames = descs[0][0]
+    ##
+
+    DescNames = []
     DescValues = []
-    for d in descs:
-        DescValues.append(d[1])
-    DescNames = descs[0][0]
+    results = Parallel(n_jobs=num_cores)(
+             delayed(calc_desc)(smi) for smi in parent_smi)
+
+    for desc in results:
+        DescNames = desc[0]
+        DescValues.append(desc[1])
+
     df = pd.DataFrame(data = DescValues, columns=DescNames)
     df.insert(loc=0, column='SMILES', value=parent_smi)
     df.to_csv(output_folder1 + "descriptors.csv", index=False)
