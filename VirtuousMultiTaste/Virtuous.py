@@ -204,7 +204,7 @@ def ReadMol (file, type=None, verbose=True):
             mol = Chem.MolFromPDBFile(file, sanitize=False)
         elif type == 'Smarts' or type == 'SMARTS' or type == 'smarts':
             mol = Chem.MolFromSmarts(file, sanitize=False)
-        elif type == 'pubchem name' or type == 'Pubchem name' or type == 'PubChem name' or type == 'pubchem Name' or type == 'PubChem Name' or type == 'Pubchem Name':
+        elif type == 'pubchem name' or type == 'Pubchem name' or type == 'PubChem name' or type == 'pubchem Name' or type == 'PubChem Name' or type == 'Pubchem Name' or type == 'pubchem_name' or type == 'Pubchem_name' or type == 'PubChem_name' or type == 'pubchem_Name' or type == 'PubChem_Name' or type == 'Pubchem_Name' or type=='pubchem':
             smi = pubchem_query(file, verbose=verbose)
             mol = Chem.MolFromSmiles(smi, sanitize=False)
         else: 
