@@ -64,7 +64,7 @@ logging.basicConfig(level=logging.WARNING)
 
 
 def read_mol(cpnd):
-    return Virtuous.ReadMol(cpnd, verbose=args.verbose)
+    return Virtuous.ReadMol(cpnd, verbose=args.verbose, type=args.type)
 
 def standardize(m):
     return Virtuous.Standardize(m)
@@ -83,6 +83,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='VirtuousMultiTaste: ML-based tool to predict the umami taste')
     parser.add_argument('-c','--compound',help="query compound (allowed file types are SMILES, FASTA, Inchi, PDB, Sequence, Smarts, pubchem name)",default=None)
     parser.add_argument('-f','--file',help="text file containing the query molecules",default=None)
+    parser.add_argument('-t', '--type', help="type of the input file (SMILES, FASTA, Inchi, PDB, Sequence, Smarts, pubchem name). If not specified, an automatic recognition of the input format will be tried", default=None)
     parser.add_argument('-d','--directory',help="name of the output directory",default=None)
     parser.add_argument('-v','--verbose',help="Set verbose mode", default=False, action='store_true')
     args = parser.parse_args()
