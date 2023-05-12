@@ -803,13 +803,6 @@ def normalize_dataset(dataset_initial, minimums, maximums, normalization_method,
                     else:
                         outdata_data[i][j] = 0 + (float(dataset_initial[i][j]) - minimums[i]) / float(
                             maximums[i] - minimums[i])
-            # if i==6:
-            #     print("Maximum: ", maximums[i])
-            #     print("Minimum: ", minimums[i])
-            #     print("Dataset:", outdata_data[i][0])
-            #     print("Dataset initial: ", dataset_initial[i][0])
-                # time.sleep(15)    # Pause 5.5 seconds
-
 
 
         logging.info("PID:{}\tJOB:{}\tUSER:{}\tArithmetic normalization was used!".format(pid, jobid, user))
@@ -1015,8 +1008,6 @@ def preprocess_data(input_dataset, maximums, minimums, features_filename,
         column_count = len(testdata[0])  # counter for iterating on a feature across observations
 
         for i, feature in enumerate(features_training):  # match each feature in predict with training
-            if i == 6:
-                print('Feature: ',feature)
             flag_found = 0  # flag to check if training feature was found in predict feature list
             for j, feat_values in enumerate(testdata):  # get the row index of predict data to be picked for matching
                 # feature
@@ -1178,7 +1169,7 @@ def preprocess_specific(input_dataset, delimiter, output_folder, src_path,featur
     xx = df_filtered.dropna(axis=0, how='all')
     df = xx.dropna(axis=1, how='all')
     nan_in_df = df.isnull().sum().sum()
-    print(df)
+    # print(df)
     df.values[df.values > 1.9399999999999998e+33] = 1.9399999999999998e+33
     df.to_csv(output_folder + 'preprocessed_data.txt', sep='\t')
 
