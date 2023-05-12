@@ -33,9 +33,10 @@ Version history:
 - Version 1.8  - 13/07/2022: Changing pybel import
 - Version 1.9  - 04/11/2022: Bug fix -> Fixing 3D descriptors calculation using Mordred
 - Version 1.10 - 03/04/2023: Bug fix -> Adding is_word function to check if the string identifying the input molecule is a word
+- Version 1.11 - 18/04/2023: Bug fix -> Adding type of the input molecule to avoid error while reading molecule
 """
 
-__version__ = '1.10'
+__version__ = '1.11'
 __author__ = 'Lorenzo Pallante'
 
 import sys
@@ -120,70 +121,100 @@ def is_word(s):
     d = enchant.Dict("en_US")
     return d.check(s)
 
-def ReadMol (file, verbose=True):
+def ReadMol (file, type=None, verbose=True):
     """
     Function to read input file in different file format, run sanification with RDKit and return RDKit mol object
     :param file: molecule file or string
+    :param type: file format (SMILES, FASTA, SEQUENCE, Inchi, PDB, pubchem_name) [default: None -> automatic detection]
     :return: RDKit molecule object
     """
-    
-    mol = None
 
-    # check if the input string is a valid word
-    if is_word(file):
-        # if it is a word, query PubChem to retrieve the SMILES
-        try: 
-            smi = pubchem_query(file, verbose=verbose)
-            mol = Chem.MolFromSmiles(smi, sanitize=False)
-        except:
-            pass
+    # if the format is not specified, try to detect the format
+    if not type:
 
-    if mol:
-        # if the input is a valid word and the query to PubChem is successful, the type is 'pubchem name'
-        type = 'pubchem name'
-    else: 
-        # check other files formats
-        mol = Chem.MolFromSmiles(file, sanitize=False)
+        mol = None
+
+        # check if the input string is a valid word
+        if is_word(file):
+            # if it is a word, query PubChem to retrieve the SMILES
+            try: 
+                smi = pubchem_query(file, verbose=verbose)
+                mol = Chem.MolFromSmiles(smi, sanitize=False)
+            except:
+                pass
 
         if mol:
-            type = 'SMILES'
-        else:
-            mol = Chem.MolFromFASTA(file, sanitize=False)
+            # if the input is a valid word and the query to PubChem is successful, the type is 'pubchem name'
+            type = 'pubchem name'
+        else: 
+            # check other files formats
+            mol = Chem.MolFromSmiles(file, sanitize=False)
+
             if mol:
-                type = 'FASTA'
+                type = 'SMILES'
             else:
-                mol = Chem.MolFromSequence(file, sanitize=False)
+                mol = Chem.MolFromFASTA(file, sanitize=False)
                 if mol:
-                    type = 'SEQUENCE'
+                    type = 'FASTA'
                 else:
-                    try:
-                        mol = Chem.MolFromInchi(file, sanitize=False)
-                    except:
-                        pass
+                    mol = Chem.MolFromSequence(file, sanitize=False)
                     if mol:
-                        type = 'Inchi'
+                        type = 'SEQUENCE'
                     else:
                         try:
-                            mol = Chem.MolFromPDBFile(file, sanitize=False)
+                            mol = Chem.MolFromInchi(file, sanitize=False)
                         except:
                             pass
                         if mol:
-                            type = 'PDB'
+                            type = 'Inchi'
                         else:
                             try:
-                                mol = Chem.MolFromSmarts(file, sanitize=False)
+                                mol = Chem.MolFromPDBFile(file, sanitize=False)
                             except:
                                 pass
                             if mol:
-                                type = 'Smarts'
+                                type = 'PDB'
                             else:
-                                sys.exit("\nError while reading your query compound: check your molecule!\nNote that "
-                                        "allowed file types are SMILES, FASTA, Inchi, Sequence, Smarts or pubchem "
-                                        "name")
+                                try:
+                                    mol = Chem.MolFromSmarts(file, sanitize=False)
+                                except:
+                                    pass
+                                if mol:
+                                    type = 'Smarts'
+                                else:
+                                    sys.exit("\nError while reading your query compound: check your molecule!\nNote that "
+                                            "allowed file types are SMILES, FASTA, Inchi, Sequence, Smarts or pubchem "
+                                            "name")
 
-    # print the type of input (if pubchem name, no need to print it)
-    if verbose and type != 'pubchem name':
-        print(f"Input has been interpeted as {type}")
+        # print the type of input (if pubchem name, no need to print it)
+        if verbose and type != 'pubchem name':
+            print(f"Input has been interpeted as {type}")
+
+    # if the type is specified, read the file with the specified type
+    else: 
+        if type == 'SMILES' or type == 'Smiles' or type == 'smiles':
+                mol = Chem.MolFromSmiles(file, sanitize=False)
+        elif type == 'FASTA' or type=='fasta' or type == 'FASTA sequence' or type == 'FASTA Sequence':
+            mol = Chem.MolFromFASTA(file, sanitize=False)
+        elif type == 'SEQUENCE' or type == 'Sequence' or type == 'sequence':
+            mol = Chem.MolFromSequence(file, sanitize=False)
+        elif type == 'Inchi' or type == 'INCHI' or type == 'inchi':
+            mol = Chem.MolFromInchi(file, sanitize=False)
+        elif type == 'PDB' or type == 'pdb':
+            mol = Chem.MolFromPDBFile(file, sanitize=False)
+        elif type == 'Smarts' or type == 'SMARTS' or type == 'smarts':
+            mol = Chem.MolFromSmarts(file, sanitize=False)
+        elif type == 'pubchem name' or type == 'Pubchem name' or type == 'PubChem name' or type == 'pubchem Name' or type == 'PubChem Name' or type == 'Pubchem Name' or type == 'pubchem_name' or type == 'Pubchem_name' or type == 'PubChem_name' or type == 'pubchem_Name' or type == 'PubChem_Name' or type == 'Pubchem_Name' or type=='pubchem':
+            smi = pubchem_query(file, verbose=verbose)
+            mol = Chem.MolFromSmiles(smi, sanitize=False)
+        else: 
+            sys.exit("\nFormat not recognized! Allowed formats are SMILES, FASTA, Inchi, Sequence, Smarts or pubchem")
+    
+    # check if the molecule has been read
+    if not mol:
+        sys.exit("\nError while reading your query compound: check your molecule and the file type!\nNote that "
+                "allowed file types are SMILES, FASTA, Inchi, Sequence, Smarts or pubchem name"
+                "name")
 
     # try to sanitiaze the molecule
     try:
