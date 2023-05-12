@@ -97,8 +97,8 @@ if __name__ == "__main__":
     root_dir_path = os.path.dirname(os.path.dirname(code_path))
     src_path = os.path.dirname(code_path) + os.sep + "src" + os.sep
     AD_file = src_path  + "fourtaste_AD_train.pkl"
-    maximums_filename1 = src_path  + 'maximums.txt'
-    minimums_filename1 = src_path  + 'minimums.txt'
+    maximums_filename1 = src_path  + 'maximums_neworder.txt'
+    minimums_filename1 = src_path  + 'minimums_neworder.txt'
     features_filename1 = src_path + 'features_list.txt'
     best_features = src_path + 'fourtaste_best_features.txt'
     missing_imputation_method1 = 2
@@ -203,7 +203,7 @@ if __name__ == "__main__":
     testset_filename1 = output_folder1 + "descriptors.csv"
 
     delim   = testing_fourtaste.find_delimiter(testset_filename1)
-    dataset = testing_fourtaste.preprocess_specific(testset_filename1, delim, output_folder1, src_path)
+    dataset = testing_fourtaste.preprocess_specific(testset_filename1, delim, output_folder1, src_path, features_filename1)
     ret     = testing_fourtaste.run_all(dataset, maximums_filename1, minimums_filename1,
                   features_filename1, missing_imputation_method1, normalization_method1,
                   model_filename1, selection_flag1, data_been_preprocessed_flag1, selected_comorbidities_string1,has_features_header1, has_samples_header1, training_labels_filename1, 

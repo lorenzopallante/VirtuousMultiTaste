@@ -214,6 +214,9 @@ def preprocess_testing_dataset(test_filename, maximums_filename, minimums_filena
         test_filename, maximums, minimums, training_features_file, missing_imputation_method,
         normalization_method, output_folder, data_been_preprocessed_flag, variables_for_normalization_string,
         has_feature_headers, has_sample_headers, user=user, jobid=jobid, pid=pid)
+    
+    # dataset = pd.DataFrame(preprocessed_dataset)
+    # dataset.to_csv('C:/Users/labro/Downloads/Correct_Multitaste_data/preprocessed-from-testing-script.csv')
     if end_code:
         # return the preprocessed dataset and features
         return True, preprocessed_dataset, testing_features
@@ -422,7 +425,7 @@ class PredictMulticlass:
         # iterate on each patient, check for missing % of features in original data and choose the models
         # for patient in range(5,6): # for testing
         mean_class = \
-            Parallel(n_jobs=self.threads, verbose=14)(delayed(self.predict_fun_thread)(patient)
+            Parallel(n_jobs=14, verbose=1)(delayed(self.predict_fun_thread)(patient)
                                                       for patient in range(row_count))
 
         # mean_class = np.hstack((mean_class, np.array(predicted_patient).reshape(-1, 1)))
@@ -761,7 +764,12 @@ def perform_missing_value_imputation(dataset_initial, averages, missing_imputati
         for j in range(len(dataset_initial[0])):
             if dataset_initial[i][j] == '' or dataset_initial[i][j] == -1000:
                 dataset_initial[i][j] = np.NaN
+    # dataset_new = np.asarray(dataset_initial).T
+    # dataset_new_nan =  np.isnan(np.asarray(dataset_initial)).T
+    # dataset = knn_impute_optimistic(dataset_new, dataset_new_nan, k=3)
     dataset = knn_impute_optimistic(np.asarray(dataset_initial), np.isnan(np.asarray(dataset_initial)), k=3)
+
+    # dataset = dataset.T
     dataset = list(map(list, zip(*dataset)))
     logging.info("PID:{}\tJOB:{}\tUSER:{}\tKNN imputation method was used!".format(pid, jobid, user))
     return dataset
@@ -795,6 +803,15 @@ def normalize_dataset(dataset_initial, minimums, maximums, normalization_method,
                     else:
                         outdata_data[i][j] = 0 + (float(dataset_initial[i][j]) - minimums[i]) / float(
                             maximums[i] - minimums[i])
+            # if i==6:
+            #     print("Maximum: ", maximums[i])
+            #     print("Minimum: ", minimums[i])
+            #     print("Dataset:", outdata_data[i][0])
+            #     print("Dataset initial: ", dataset_initial[i][0])
+                # time.sleep(15)    # Pause 5.5 seconds
+
+
+
         logging.info("PID:{}\tJOB:{}\tUSER:{}\tArithmetic normalization was used!".format(pid, jobid, user))
         return outdata_data
 
@@ -972,18 +989,18 @@ def preprocess_data(input_dataset, maximums, minimums, features_filename,
             pid, jobid, user))
         return [False, "Error during parsing the Dataset. Please contact us for more information", '']
     message = ''
-    try:
-        # Average duplicate measurements & outlier detection
-        if missing_imputation_method != 0:
-            [testdata, markers] = average_duplicate_measurements(testdata, markers, user, jobid, pid)
-            message += "Duplicate measurements have been averaged successfully!\n"
-        else:
-            message += "Duplicate measurements have not been averaged!\n"
-    except Exception:
-        logging.exception("PID:{}\tJOB:{}\tUSER:{}\tPreprocessing raised the exception during averaging.".format(
-            pid, jobid, user))
-        return [False, "Preprocessing raised the exception during averaging. Please contact us "
-                       "for more information", '']
+    # try:
+    #     # Average duplicate measurements & outlier detection
+    #     if missing_imputation_method != 0:
+    #         [testdata, markers] = average_duplicate_measurements(testdata, markers, user, jobid, pid)
+    #         message += "Duplicate measurements have been averaged successfully!\n"
+    #     else:
+    #         message += "Duplicate measurements have not been averaged!\n"
+    # except Exception:
+    #     logging.exception("PID:{}\tJOB:{}\tUSER:{}\tPreprocessing raised the exception during averaging.".format(
+    #         pid, jobid, user))
+    #     return [False, "Preprocessing raised the exception during averaging. Please contact us "
+    #                    "for more information", '']
 
     try:
         features_training = []
@@ -998,6 +1015,8 @@ def preprocess_data(input_dataset, maximums, minimums, features_filename,
         column_count = len(testdata[0])  # counter for iterating on a feature across observations
 
         for i, feature in enumerate(features_training):  # match each feature in predict with training
+            if i == 6:
+                print('Feature: ',feature)
             flag_found = 0  # flag to check if training feature was found in predict feature list
             for j, feat_values in enumerate(testdata):  # get the row index of predict data to be picked for matching
                 # feature
@@ -1104,20 +1123,27 @@ def preprocess_data(input_dataset, maximums, minimums, features_filename,
     return [True, new_data, new_features]
 
 
-def preprocess_specific(input_dataset, delimiter, output_folder, src_path):
+def preprocess_specific(input_dataset, delimiter, output_folder, src_path,features_correct):
     # Create output folder if it doesn't exist
     if not os.path.exists(output_folder):
         os.makedirs(output_folder)
-    fourtaste_significant = open(src_path + 'fourtaste_statistical_features.txt', 'r')
-    fourtaste_features = fourtaste_significant.read()
-    fourtaste_features = fourtaste_features.split('\n')    
-    fourtaste_significant.close()
+
+    # fourtaste_significant = open(src_path + 'fourtaste_statistical_features.txt', 'r')
+    # fourtaste_features = fourtaste_significant.read()
+    # fourtaste_features = fourtaste_features.split('\n')    
+    # fourtaste_significant.close()
 
 
-    fourtaste_exclude = open(src_path + 'features_exclude.txt', 'r')
-    features_exclude = fourtaste_exclude.read()
-    features_exclude = features_exclude.split('\n')
-    fourtaste_exclude.close()
+    # fourtaste_exclude = open(src_path + 'features_exclude.txt', 'r')
+    # features_exclude = fourtaste_exclude.read()
+    # features_exclude = features_exclude.split('\n')
+    # fourtaste_exclude.close()    
+    
+    # fourtaste_exclude = open(features_correct, 'r')
+    # features_correct_ = fourtaste_exclude.read()
+    # features_correct_ = features_correct_.split(',')
+    # fourtaste_exclude.close()
+    featuresfromtraining = pd.read_csv(features_correct, sep=',')
 
     df = pd.read_csv(input_dataset, delimiter=delimiter)
 
@@ -1127,25 +1153,32 @@ def preprocess_specific(input_dataset, delimiter, output_folder, src_path):
 
     # df = df[1:]
     # #####
-
+    
+    df_filtered = df[featuresfromtraining.columns.tolist()]
+    # reorder dataframe based on order of features in list
+    df_filtered = df_filtered.reindex(columns=featuresfromtraining.columns.tolist())
+    
+    
     # df = df[df.columns.drop(list(df.filter(regex='Unnamed')))]
-    df.rename(columns=lambda s: s.replace(".", "_"), inplace=True)
-    df.rename(columns=lambda s: s.replace("-", "_"), inplace=True)
+    # df.rename(columns=lambda s: s.replace(".", "_"), inplace=True)
+    # df.rename(columns=lambda s: s.replace("-", "_"), inplace=True)
 
     # df = df.rename(
     #     columns={'nARing': 'nARing_1', 'n5ARing': 'n5ARing_1', 'nAHRing': 'nAHRing_1', 'n5AHRing': 'n5AHRing_1'})
     
-    fourtaste_features = [w.replace('.', '_') for w in fourtaste_features]
-    fourtaste_features = [w.replace('-', '_') for w in fourtaste_features]
+    # fourtaste_features = [w.replace('.', '_') for w in fourtaste_features]
+    # fourtaste_features = [w.replace('-', '_') for w in fourtaste_features]
 
-    features = [x for x in fourtaste_features if x not in features_exclude]
-    df = df[features]
+    # features = [x for x in fourtaste_features if x not in features_exclude]
+    # exlucde = ['nARing', 'n5ARing', 'n6ARing', 'nAHRing', 'n5AHRing', 'n6AHRing', 'nFARing', 'n10FARing', 'nG12FARing', 'nFAHRing', 'n10FAHRing', 'nG12FAHRing']
+    # features = [x for x in features if x not in exlucde]
+    # df = df[features_correct_]
 
-    df = df.astype(object).T
-    xx = df.dropna(axis=0, how='all')
+    df_filtered = df_filtered.astype(object).T
+    xx = df_filtered.dropna(axis=0, how='all')
     df = xx.dropna(axis=1, how='all')
     nan_in_df = df.isnull().sum().sum()
-    
+    print(df)
     df.values[df.values > 1.9399999999999998e+33] = 1.9399999999999998e+33
     df.to_csv(output_folder + 'preprocessed_data.txt', sep='\t')
 
@@ -1159,8 +1192,8 @@ if __name__ == "__main__":
 
     src_path = os.path.dirname(os.path.realpath(__file__)) + os.sep + "src" + os.sep
 
-    maximums_filename1 = src_path  + 'maximums.txt'
-    minimums_filename1 = src_path  + 'minimums.txt'
+    maximums_filename1 = src_path  + 'maximums_neworder.txt'
+    minimums_filename1 = src_path  + 'minimums_neworder.txt'
     features_filename1 = src_path + 'features_list.txt'
     missing_imputation_method1 = 2
     normalization_method1 = 1
@@ -1179,7 +1212,14 @@ if __name__ == "__main__":
     initLogging()
     
     delim = find_delimiter(testset_filename1)
-    dataset = preprocess_specific(testset_filename1, delim, output_folder1, src_path)
+    dataset = preprocess_specific(testset_filename1, delim, output_folder1, src_path, features_filename1)
+    # df = pd.read_csv(testset_filename1, delimiter=delim)
+    # df = df.astype(object).T
+    # if not os.path.exists(output_folder1):
+    #     os.makedirs(output_folder1)
+    # df.to_csv(output_folder1 + 'non_preprocessed_data.txt', sep='\t')
+
+    # dataset = output_folder1 + 'non_preprocessed_data.txt'
     ret = run_all(dataset, maximums_filename1, minimums_filename1,
                   features_filename1, missing_imputation_method1, normalization_method1,
                   model_filename1, selection_flag1, data_been_preprocessed_flag1, selected_comorbidities_string1,has_features_header1, has_samples_header1, training_labels_filename1,
