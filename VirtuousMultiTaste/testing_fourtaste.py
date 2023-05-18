@@ -23,14 +23,12 @@ import csv
 import shutil
 import pandas as pd
 
-
 from knnimpute import (
     knn_impute_optimistic
 )
 import copy
 import joblib
 from joblib import Parallel, delayed
-
 
 def initLogging():
     """
@@ -425,7 +423,7 @@ class PredictMulticlass:
         # iterate on each patient, check for missing % of features in original data and choose the models
         # for patient in range(5,6): # for testing
         mean_class = \
-            Parallel(n_jobs=14, verbose=1)(delayed(self.predict_fun_thread)(patient)
+            Parallel(n_jobs=14, verbose=0)(delayed(self.predict_fun_thread)(patient)
                                                       for patient in range(row_count))
 
         # mean_class = np.hstack((mean_class, np.array(predicted_patient).reshape(-1, 1)))

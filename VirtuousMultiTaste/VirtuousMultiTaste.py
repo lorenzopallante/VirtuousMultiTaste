@@ -225,6 +225,7 @@ if __name__ == "__main__":
     # Rename the dataframe column  to the four tastes 
     df = df.rename(columns={1: 'Bitter', 3: 'Sweet', 5: 'Other', 7: 'Umami'})
     df = df.reindex(columns=['Bitter', 'Sweet', 'Umami', 'Other'])
+    df = df.round(2)
     df ["Dominant"] = [d.split()[0].upper() for d in dominants]
     df.insert(loc=0, column='Check AD', value=test)
     df.insert(loc=0, column='SMILES', value=parent_smi)
