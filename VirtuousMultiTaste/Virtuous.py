@@ -49,7 +49,8 @@ from mordred import Calculator, descriptors
 import rdkit
 from rdkit import Chem, DataStructs
 from rdkit.Chem import AllChem
-from openbabel import pybel
+# not needed for now
+#from openbabel import pybel
 import urllib.parse
 import urllib.request
 import sys
