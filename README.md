@@ -34,14 +34,14 @@ The repository is organized in the following folders:
 
 1. Create conda environment:
 
-        conda create -n myenv python=3.8
+        conda create -n myenv python=3.10
         conda activate myenv
 
 2. Install required packages:
 
         conda install -c conda-forge rdkit chembl_structure_pipeline
         conda install -c mordred-descriptor mordred
-        pip install tqdm knnimpute joblib Cython scikit-learn==0.22.2 xmltodict
+        pip install knnimpute joblib Cython scikit-learn==1.1.1 xmltodict pyenchant
 
 3. Clone the `VirtuousMultiTaste` repository from GitHub
 
