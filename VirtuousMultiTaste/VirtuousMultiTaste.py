@@ -21,6 +21,7 @@ optional arguments:
   -c COMPOUND, --compound COMPOUND
                         query compound (allowed file types are SMILES, FASTA, Inchi, PDB, Sequence, Smarts, pubchem name)
   -f FILE, --file FILE  text file containing SMILES of the query molecules
+  -t TYPE, --type TYPE  type of the input file (SMILES, FASTA, Inchi, PDB, Sequence, Smarts, pubchem name). If not specified, an automatic recognition of the input format will be tried
   -d DIRECTORY, --directory DIRECTORY
                         name of the output directory
   -v VERBOSE, --verbose VERBOSE
