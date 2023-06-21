@@ -6,7 +6,7 @@ Official repo of the Multi Taste Predictor developed in the framework of the EU-
 [Virtuous_image]: https://virtuoush2020.com/wp-content/uploads/2021/02/V_logo_h.png
 [Virtuous link]: https://virtuoush2020.com/
 
-The VirtuousMultiTaste is also implemented into a webserver interface at XXXXXX
+The VirtuousMultiTaste is also implemented into a webserver interface at https://virtuous.isi.gr/#/virtuous-multitaste
 
 ### Repo Structure
 The repository is organized in the following folders:
@@ -17,15 +17,17 @@ The repository is organized in the following folders:
 - data/
 > Collecting the training and the test sets of the model, the prioritized list of molecular descriptors and the external DBs with their relative umami predictions
 
-- samples/
+- examples/
 > Including examples files to test the code
+
+- notebooks/
+> Collecting the jupyter notebooks used to test the code
 
 
 ### Authors
 1. [Lampros Androutsos](https://github.com/lamprosandroutsos)
 2. [Lorenzo Pallante](https://github.com/lorenzopallante)
 3. [Aigli Korfiati](https://github.com/aiglikorfiati)
-4. ....
 
 
 ----------------
@@ -53,8 +55,38 @@ Enjoy!
 ## How to use VirtuousMultiTaste
 --------------------------------
 
-XXXXX PLACEHOLDER XXXXX
+The main code is `VirtuousMultiTaste.py` within the VirtuousMultiTaste folder.
 
+To learn how to run, just type:
+
+    python VirtuousMultiTaste.py --help
+
+And this will print the help message of the program:
+
+    usage: VirtuousMultiTaste.py [-h] [-c COMPOUND] [-f FILE] [-t TYPE] [-d DIRECTORY] [-v]
+
+        VirtuousMultiTaste: ML-based tool to predict the umami taste
+
+        options:
+        -h, --help            show this help message and exit
+        -c COMPOUND, --compound COMPOUND
+                                query compound (allowed file types are SMILES, FASTA, Inchi, PDB, Sequence, Smarts, pubchem name)
+        -f FILE, --file FILE  text file containing the query molecules
+        -t TYPE, --type TYPE  type of the input file (SMILES, FASTA, Inchi, PDB, Sequence, Smarts, pubchem name). If not specified, an automatic
+                                recognition of the input format will be tried
+        -d DIRECTORY, --directory DIRECTORY
+                                name of the output directory
+        -v, --verbose         Set verbose mode
+
+To test the code you can submit an example txt file in the "samples" fodler (test.txt) 
+
+The code will create a log file and an output folder containing:
+
+    1. "best_descriptors.csv": a csv file collecting the 15 best molecular descriptors for each processed smiles on which the prediction relies
+    2. "descriptors.csv": a csv file collecting all the calculated molecular descriptors for each processed smiles
+    3. "result_labels.txt": a txt file containing the predicted taste classes for each processed molecule
+    4. "result_dominant_labels.txt": a txt file containing the predicted dominant taste classes for each processed molecule
+    5. "predictions.csv": a csv summarising the results of the prediction
 
 ------------------
 ## Acknowledgement
