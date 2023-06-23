@@ -74,7 +74,7 @@ def select_predictor(dataset_initial, features, models_zip, training_labels_file
             os.remove(output_folder + "preprocessed_data.txt")
         if os.path.isfile(output_folder + "preprocessed_dataset_0.tsv"):
             os.remove(output_folder + "preprocessed_dataset_0.tsv")  
-        if os.path.isfile(output_folder + "info.tsv"):
+        if os.path.isfile(output_folder + "info.txt"):
             os.remove(output_folder + "info.txt")
         shutil.rmtree(output_folder + "models")
         return [1, "Successful completion!"]
