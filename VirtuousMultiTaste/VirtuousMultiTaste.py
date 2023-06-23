@@ -1,7 +1,7 @@
 """
 VIRTUOUS MULTI TASTE
 
-The VirtuousMultiTaste tool predict the other/sweet/bitter/umami tastes of quey molecules based on their molecular structures.
+The VirtuousMultiTaste tool predict the other/sweet/bitter/umami tastes of query molecules based on their molecular structures.
 
 This tool is mainly based on:
     1. VirtuousMultiTaste.py: a main script which calls the following functionalities
@@ -12,9 +12,9 @@ To learn how to run, just type:
 
     python VirtuousMultiTaste.py --help
 
-usage: VirtuousMultiTaste.py [-h] [-s SMILES] [-f FILE] [-v VERBOSE]
+usage: VirtuousMultiTaste.py [-h] [-c COMPOUND] [-f FILE] [-v VERBOSE] [-d DIRECTORY] [(-t TYPE)]
 
-VirtuousMultiTaste: ML-based tool to predict the umami taste
+VirtuousMultiTaste: ML-based tool to predict multiple taste sensqtions including sweet, bitter, umami, from other tastes
 
 optional arguments:
   -h, --help            show this help message and exit
@@ -27,20 +27,32 @@ optional arguments:
   -v VERBOSE, --verbose VERBOSE
                         Set verbose mode (default: False; if True print messagges)
 
-To test the code you can submit an example txt file in the samples fodler (SMILES.txt)
+To test the code you can submit an example txt file in the examples fodler (test.txt)
 
 The code will create a log file and an output folder containing:
-    1. "best_descriptors.csv": a csv file collecting the 12 best molecular descriptors for each processed smiles on which the prediction relies
-    2. "descriptors.csv": a csv file collecting the molecular descriptors for each processed smiles
-    3. "result_labels": a txt file containing the predicted taste classes (umami/non-umami) for each processed smiles
-    4. "predictions.csv": a csv summarising the results of the prediction
+
+    1. "best_descriptors.csv": a csv file collecting the 15 best molecular descriptors for each processed smiles on which the prediction relies
+    2. "descriptors.csv": a csv file collecting all the calculated molecular descriptors for each processed smiles
+    3. "result_labels.txt": a txt file containing the predicted taste classes for each processed molecule
+    4. "result_dominant_labels.txt": a txt file containing the predicted dominant taste classes for each processed molecule
+    5. "predictions.csv": a csv summarising the results of the prediction
+
+---------------
+Acknowledgement
+
+The present work has been developed as part of the VIRTUOUS project, funded by the European Union’s Horizon 2020 research and innovation program under the Marie Sklodowska-Curie-RISE Grant Agreement No 872181 (https://www.virtuoush2020.com/).
+
+----------------
+Version history:
+- Version 0.1.0  - 14/10/2022
+- Version 0.1.1  - 23/06/2023: Removing AD and correcting minor issues
 
 """
 
-__version__ = '0.1.0'
+__version__ = '0.1.1'
 __author__ = 'Virtuous Consortium'
 
-
+# Import libraries
 import pandas as pd
 import numpy as np
 from rdkit import Chem, RDLogger
@@ -63,15 +75,12 @@ warnings.simplefilter(action='ignore', category=FutureWarning)
 import logging
 logging.basicConfig(level=logging.WARNING)
 
-
+# define functions for preprocessing
 def read_mol(cpnd):
     return Virtuous.ReadMol(cpnd, verbose=args.verbose, type=args.type)
 
 def standardize(m):
     return Virtuous.Standardize(m)
-
-def test_ad(smi):
-    return Virtuous.TestAD(smi, filename=AD_file, verbose=False, sim_threshold=fourtaste_AD_threshold, neighbors=5, metric="tanimoto")
 
 # define the function that takes in a SMILES string and returns its descriptors
 def calc_desc(smi):
@@ -125,7 +134,7 @@ if __name__ == "__main__":
 
         testing_fourtaste.initLogging()
     
-
+    #####################################
     # --- Preprocessing (Virtuous.py) ---
 
     # 1.1 Defining the SMILES to be processed
@@ -141,38 +150,44 @@ if __name__ == "__main__":
             query_cpnd = f.read().splitlines()
 
     else:
-        sys.exit("\n***ERROR!***\nPlease provide a SMILES or a txt file containing a list of SMILES!\nUse python ../VirtuousMultiTaste-master.py --help for further information\n")
+        sys.exit("\n***ERROR!***\nPlease provide a molecule or a txt file containing a list of molecules in the allowed formats!\nUse python ../VirtuousMultiTaste.py --help for further information\n")
 
     # 1.2 Import compound as a molecule object
-    ## previous version
+
+    ## serial version
     # mol = [Virtuous.ReadMol(cpnd, verbose=args.verbose) for cpnd in query_cpnd]
     ##
+
     mol = Parallel(n_jobs=num_cores)(
                 delayed(read_mol)(cpnd) for cpnd in query_cpnd)
+    
     # 1.3 Standardise molecule with the ChEMBL structure pipeline (https://github.com/chembl/ChEMBL_Structure_Pipeline)
+
     ## previous version
     # standard = [Virtuous.Standardize(m) for m in mol]
     ##
+
     standard = Parallel(n_jobs=num_cores)(
             delayed(standardize)(m) for m in mol)
+    
     # take only the parent smiles
     issues     = [i[0] for i in standard]
     std_smi    = [i[1] for i in standard]
     parent_smi = [i[2] for i in standard]
 
-    # 1.4 Check the Applicability Domain (AD)
-    fourtaste_AD_threshold = 0.03
-    ## previous version
-    # check_AD = [Virtuous.TestAD(smi, filename=AD_file, verbose = False, sim_threshold=fourtaste_AD_threshold, neighbors = 5, metric = "tanimoto") for smi in parent_smi]
-    ##
-    check_AD = Parallel(n_jobs=num_cores)(
-            delayed(test_ad)(smi) for smi in parent_smi)
-    test       = [i[0] for i in check_AD]
-    score      = [i[1] for i in check_AD]
-    sim_smiles = [i[2] for i in check_AD]
+    # # 1.4 Check the Applicability Domain (AD)
+    # fourtaste_AD_threshold = 0.03
+    # ## previous version
+    # # check_AD = [Virtuous.TestAD(smi, filename=AD_file, verbose = False, sim_threshold=fourtaste_AD_threshold, neighbors = 5, metric = "tanimoto") for smi in parent_smi]
+    # ##
+    # check_AD = Parallel(n_jobs=num_cores)(
+    #         delayed(test_ad)(smi) for smi in parent_smi)
+    # test       = [i[0] for i in check_AD]
+    # score      = [i[1] for i in check_AD]
+    # sim_smiles = [i[2] for i in check_AD]
 
     # 1.5 Featurization: Calculation of the molecular descriptors
-    #DescNames, DescValues = Virtuous.CalcDesc(parent_smi, Mordred=True, RDKit=False, pybel=False)
+
     ## previous version
     # descs = [Virtuous.CalcDesc(smi, Mordred=True, RDKit=False, pybel=False) for smi in parent_smi]
     # DescValues = []
@@ -190,6 +205,7 @@ if __name__ == "__main__":
         DescNames = desc[0]
         DescValues.append(desc[1])
 
+    # save all the descriptors with SMILES in the file "descriptors.csv"
     df = pd.DataFrame(data = DescValues, columns=DescNames)
     df.insert(loc=0, column='SMILES', value=parent_smi)
     df.to_csv(output_folder1 + "descriptors.csv", index=False)
@@ -200,8 +216,8 @@ if __name__ == "__main__":
     df_best = df[col]
     df_best.to_csv(output_folder1 + "best_descriptors.csv", index=False)
 
+    ##########################################
     # --- Run the model (testing_umami.py) ---
-
     testset_filename1 = output_folder1 + "descriptors.csv"
 
     delim   = testing_fourtaste.find_delimiter(testset_filename1)
@@ -213,7 +229,7 @@ if __name__ == "__main__":
 
     testing_fourtaste.logging.info("{}".format(ret[1]))
 
-    # --- Collect results --
+    # Collect results
     df = pd.read_csv(output_folder1 + "result_labels.txt", sep="\t", header=None)
     # Keep only the prediction values
     df = df[[1, 3, 5, 7]]
@@ -228,7 +244,6 @@ if __name__ == "__main__":
     df = df.reindex(columns=['Bitter', 'Sweet', 'Umami', 'Other'])
     df = df.round(2)
     df ["Dominant"] = [d.split()[0].upper() for d in dominants]
-    df.insert(loc=0, column='Check AD', value=test)
     df.insert(loc=0, column='SMILES', value=parent_smi)
 
     df.to_csv(output_folder1 + "predictions.csv", index=False)
