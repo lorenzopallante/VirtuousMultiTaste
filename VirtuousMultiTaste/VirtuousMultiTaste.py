@@ -90,7 +90,7 @@ def calc_desc(smi):
 if __name__ == "__main__":
 
     # --- Parsing Input ---
-    parser = argparse.ArgumentParser(description='VirtuousMultiTaste: ML-based tool to predict the umami taste')
+    parser = argparse.ArgumentParser(description='VirtuousMultiTaste: ML-based tool to discriminte sweet, bitter, umami from other tastes')
     parser.add_argument('-c','--compound',help="query compound (allowed file types are SMILES, FASTA, Inchi, PDB, Sequence, Smarts, pubchem name)",default=None)
     parser.add_argument('-f','--file',help="text file containing the query molecules",default=None)
     parser.add_argument('-t', '--type', help="type of the input file (SMILES, FASTA, Inchi, PDB, Sequence, Smarts, pubchem name). If not specified, an automatic recognition of the input format will be tried", default=None)
@@ -100,7 +100,7 @@ if __name__ == "__main__":
 
     # --- Print start message
     if args.verbose:
-        print ("\n\t   *** VirtuousMultiTaste ***\nAn ML-based algorithm to predict sweet, bitter, umami tastes\n")
+        print ("\n\t   *** VirtuousMultiTaste ***\nAn ML-based algorithm to discriminte sweet, bitter, umami from other tastes\n")
 
     # --- Setting Folders and files ---
     # Stting files needed by the code
