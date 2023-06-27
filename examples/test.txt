@@ -1,5 +1,4 @@
-glutamic acid
-InChI=1S/C5H9NO4/c6-3(5(9)10)1-2-4(7)8/h3H,1-2,6H2,(H,7,8)(H,9,10)/t3-/m0/s1
-C(CC(=O)O)C(C(=O)O)N
-GPDIEHP
-glucose
+methadone
+COC(=O)C(CC1=CC=CC=C1)NC(=O)C(CC(=O)O)Nì
+CALTP
+InChI=1S/C14H9Cl5/c15-11-5-1-9(2-6-11)13(14(17,18)19)10-3-7-12(16)8-4-10/h1-8,13H
