@@ -15,7 +15,7 @@ The repository is organized in the following folders:
 >Collecting python codes and sources files to run the umami prediction
 
 - data/
-> Collecting the training and the test sets of the model, the prioritized list of molecular descriptors and the external DBs with their relative umami predictions
+> Collecting the training and the test sets of the model, the external DBs with their relative taste predictions, and the food screening results on chocolate and coffee
 
 - examples/
 > Including examples files to test the code
