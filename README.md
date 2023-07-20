@@ -15,20 +15,14 @@ The repository is organized in the following folders:
 >Collecting python codes and sources files to run the umami prediction
 
 - data/
-> Collecting the training and the test sets of the model, the external DBs with their relative taste predictions, and the food screening results on chocolate and coffee
+> Collecting the training and the test sets of the model along with their relative taste predcitions, the external DBs with their relative taste predictions, the food screening results on chocolate and coffee, and the folder with comparison with the state-of-the-art tools
 
 - examples/
 > Including examples files to test the code
 
-- notebooks/
-> Collecting the jupyter notebooks used to test the code
-
-
 ### Authors
 1. [Lampros Androutsos](https://github.com/lamprosandroutsos)
 2. [Lorenzo Pallante](https://github.com/lorenzopallante)
-3. [Aigli Korfiati](https://github.com/aiglikorfiati)
-
 
 ----------------
 ## Prerequisites
